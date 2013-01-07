@@ -19,8 +19,10 @@ unless CassandraCQL.respond_to?(:CASSANDRA_VERSION)
   require "cassandra-cql/1.1"
 end
 
-here = File.expand_path(File.dirname(__FILE__))
-require "#{here}/../vendor/#{CassandraCQL.CASSANDRA_VERSION}/gen-rb/cassandra"
+unless CassandraCQL.CASSANDRA_VERSION == 'binary'
+  here = File.expand_path(File.dirname(__FILE__))
+  require "#{here}/../vendor/#{CassandraCQL.CASSANDRA_VERSION}/gen-rb/cassandra"
+end
 
 require 'bigdecimal'
 require 'date'

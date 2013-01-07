@@ -21,7 +21,7 @@ module CassandraCQL
 
   class Database
     attr_reader :connection, :schema, :keyspace
-  
+
     def initialize(servers, options={}, thrift_client_options={})
       @options = {
         :keyspace => 'system'
@@ -40,15 +40,24 @@ module CassandraCQL
     end
 
     def connect!
-      @connection = ThriftClient.new(CassandraCQL::Thrift::Client, @servers, @thrift_client_options)
-      obj = self
-      @connection.add_callback(:post_connect) do
-        @connection.set_cql_version(@cql_version) if @cql_version
+      if @options[:protocol] == :binary
+        #FIXME handle multiple servers
+        @connection = CassandraCQL::Binary::Client.new(
+          @servers.first, @cql_version
+        )
+        @connection.startup
         execute("USE #{@keyspace}")
         @connection.login(@auth_request) if @auth_request
+      else
+        @connection = ThriftClient.new(CassandraCQL::Thrift::Client, @servers, @thrift_client_options)
+        @connection.add_callback(:post_connect) do
+          @connection.set_cql_version(@cql_version) if @cql_version
+          execute("USE #{@keyspace}")
+          @connection.login(@auth_request) if @auth_request
+        end
       end
     end
-  
+
     def disconnect!
       @connection.disconnect! if active?
     end
@@ -96,15 +105,15 @@ module CassandraCQL
     end
 
     def execute_cql_query(cql, compression=CassandraCQL::Thrift::Compression::NONE)
-      @connection.execute_cql_query(cql, compression)
+      @connection.execute_cql_query(cql.to_s, compression)
     rescue CassandraCQL::Thrift::InvalidRequestException
       raise Error::InvalidRequestException.new($!.why)
     end
-    
+
     def keyspace=(ks)
       @keyspace = (ks.nil? ? nil : ks.to_s)
     end
-  
+
     def keyspaces
       # TODO: This should be replaced with a CQL call that doesn't exist yet
       @connection.describe_keyspaces.map { |keyspace| Schema.new(keyspace) }
