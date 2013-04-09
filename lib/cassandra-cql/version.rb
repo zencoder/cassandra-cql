@@ -15,5 +15,5 @@ limitations under the License.
 =end
 
 module CassandraCQL
-  VERSION = "1.1.5"
+  VERSION = "1.1.5.zencoder.1"
 end
