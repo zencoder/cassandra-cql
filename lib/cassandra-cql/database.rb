@@ -24,7 +24,8 @@ module CassandraCQL
   
     def initialize(servers, options={}, thrift_client_options={})
       @options = {
-        :keyspace => 'system'
+        :keyspace => 'system',
+        :consistency => CassandraCQL::Thrift::ConsistencyLevel::QUORUM
       }.merge(options)
 
       @thrift_client_options = {
@@ -100,7 +101,7 @@ module CassandraCQL
 
     def execute_cql_query(cql, compression=CassandraCQL::Thrift::Compression::NONE)
       if @use_cql3_query
-        @connection.execute_cql3_query(cql, compression, CassandraCQL::Thrift::ConsistencyLevel::LOCAL_QUORUM) #TODO consistency level
+        @connection.execute_cql3_query(cql, compression, @options[:consistency]) #TODO consistency level
       else
         @connection.execute_cql_query(cql, compression)
       end
