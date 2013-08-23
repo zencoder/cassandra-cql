@@ -100,7 +100,7 @@ module CassandraCQL
 
     def execute_cql_query(cql, compression=CassandraCQL::Thrift::Compression::NONE)
       if @use_cql3_query
-        @connection.execute_cql3_query(cql, compression, CassandraCQL::Thrift::ConsistencyLevel::QUORUM) #TODO consistency level
+        @connection.execute_cql3_query(cql, compression, CassandraCQL::Thrift::ConsistencyLevel::LOCAL_QUORUM) #TODO consistency level
       else
         @connection.execute_cql_query(cql, compression)
       end
